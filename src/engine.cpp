@@ -14,7 +14,7 @@ bool QueryEngine::checkAndCondition(const Row& row, const string& andClause) {
         if (row.count(r)) r = row.at(r);
         if (l.size()>=2 && l.front()=='\'') l = l.substr(1, l.size()-2);
         if (r.size()>=2 && r.front()=='\'') r = r.substr(1, r.size()-2);
-        if (l != r) return false;
+        if (trim(l) != trim(r)) return false;
     }
     return true;
 }
@@ -36,12 +36,29 @@ void QueryEngine::execute(string query, ostream& out) {
     if (regex_match(query, m, regex(R"(INSERT\s+INTO\s+([^\s]+)\s+VALUES\s*\((.*)\))", regex::icase))) {
         string table = m[1];
         auto vals = split(m[2], ',');
-        for(auto& v : vals) if(v.size()>=2 && v.front()=='\'') v = v.substr(1, v.size()-2);
+        for(auto& v : vals) {
+            v = trim(v);
+            if(v.size()>=2 && v.front()=='\'') v = v.substr(1, v.size()-2);
+        }
         try {
             storage.insert(table, vals);
-            out << "OK" << endl;
+            out << "Успешно" << endl;
         } catch (exception& e) {
-            out << "Error: " << e.what() << endl;
+            out << "Ошибка: " << e.what() << endl;
+        }
+        return;
+    }
+
+    if (regex_match(query, m, regex(R"(DELETE\s+FROM\s+([^\s]+)\s+WHERE\s+([^\s=]+)\s*=\s*(.*))", regex::icase))) {
+        string table = m[1];
+        string col = m[2];
+        string val = trim(m[3]);
+        if(val.size() >= 2 && val.front() == '\'' && val.back() == '\'') val = val.substr(1, val.size()-2);
+        try {
+            storage.deleteRows(table, col, val);
+            out << "Успешно" << endl;
+        } catch (exception& e) {
+            out << "Ошибка: " << e.what() << endl;
         }
         return;
     }
@@ -55,7 +72,7 @@ void QueryEngine::execute(string query, ostream& out) {
         try {
             for(auto& t : tables) cursors.push_back(storage.getCursor(t));
         } catch (exception& e) {
-            out << "Error: " << e.what() << endl;
+            out << "Ошибка: " << e.what() << endl;
             return;
         }
 
@@ -66,8 +83,14 @@ void QueryEngine::execute(string query, ostream& out) {
             while(cursors[0]->next()) {
                 Row r = cursors[0]->getRow();
                 if (checkCondition(r, wherePart)) {
-                    if (all) for(auto& col : schema.tables[t1].columns) out << r[t1+"."+col] << " ";
-                    else for(auto& c : reqCols) out << (r.count(c) ? r[c] : "NULL") << " ";
+                    if (all) {
+                        auto& schemaCols = schema.tables[t1].columns;
+                        for(size_t i=0; i<schemaCols.size(); ++i) 
+                            out << r[t1+"."+schemaCols[i]] << (i == schemaCols.size()-1 ? "" : ", ");
+                    } else {
+                        for(size_t i=0; i<reqCols.size(); ++i)
+                            out << (r.count(reqCols[i]) ? r[reqCols[i]] : "NULL") << (i == reqCols.size()-1 ? "" : ", ");
+                    }
                     out << endl;
                 }
             }
@@ -79,9 +102,15 @@ void QueryEngine::execute(string query, ostream& out) {
                     combined.insert(r2.begin(), r2.end());
                     if (checkCondition(combined, wherePart)) {
                         if (all) {
-                            for(auto& c : schema.tables[t1].columns) out << combined[t1+"."+c] << " ";
-                            for(auto& c : schema.tables[t2].columns) out << combined[t2+"."+c] << " ";
-                        } else for(auto& c : reqCols) out << (combined.count(c) ? combined[c] : "NULL") << " ";
+                            vector<string> allCols;
+                            for(auto& c : schema.tables[t1].columns) allCols.push_back(t1+"."+c);
+                            for(auto& c : schema.tables[t2].columns) allCols.push_back(t2+"."+c);
+                            for(size_t i=0; i<allCols.size(); ++i)
+                                out << combined[allCols[i]] << (i == allCols.size()-1 ? "" : ", ");
+                        } else {
+                            for(size_t i=0; i<reqCols.size(); ++i)
+                                out << (combined.count(reqCols[i]) ? combined[reqCols[i]] : "NULL") << (i == reqCols.size()-1 ? "" : ", ");
+                        }
                         out << endl;
                     }
                 }
@@ -89,5 +118,5 @@ void QueryEngine::execute(string query, ostream& out) {
         }
         return;
     }
-    out << "Unknown command" << endl;
+    out << "Неизвестная команда" << endl;
 }

@@ -5,6 +5,8 @@
 using namespace std;
 namespace fs = filesystem;
 
+const int LOCK_DELAY = 1;
+
 TableLock::TableLock(const string& path) : lockPath(path), acquired(false) {
     if (fs::create_directory(lockPath)) acquired = true;
 }
@@ -73,6 +75,7 @@ unique_ptr<Cursor> StorageManager::getCursor(const string& tableName) {
 }
 
 int StorageManager::getNextId(const string& tableName) {
+    lock_guard<mutex> lock(mtx);
     string path = schema.name + "/" + tableName + "/" + tableName + "_pk_sequence";
     int id = 1;
     if (fs::exists(path)) {
@@ -85,9 +88,8 @@ int StorageManager::getNextId(const string& tableName) {
 }
 
 void StorageManager::insert(const string& tableName, const vector<string>& values) {
-    lock_guard<mutex> global_lock(mtx);
     TableLock lock(schema.name + "/" + tableName + "/" + tableName + "_lock");
-    if (!lock.isAcquired()) throw runtime_error("Table is locked");
+    if (!lock.isAcquired()) throw runtime_error("Таблица заблокирована");
 
     int fileIdx = 1;
     string path;
@@ -102,7 +104,8 @@ void StorageManager::insert(const string& tableName, const vector<string>& value
         fileIdx++;
     }
 
-    this_thread::sleep_for(chrono::seconds(1));
+    this_thread::sleep_for(chrono::seconds(LOCK_DELAY));
+
     ofstream out(path, ios::app);
     out << getNextId(tableName);
     for (const auto& v : values) out << "," << v;
@@ -110,18 +113,18 @@ void StorageManager::insert(const string& tableName, const vector<string>& value
 }
 
 void StorageManager::deleteRows(const string& tableName, const string& whereCol, const string& whereVal) {
-    lock_guard<mutex> global_lock(mtx);
     TableLock lock(schema.name + "/" + tableName + "/" + tableName + "_lock");
-    if (!lock.isAcquired()) throw runtime_error("Table is locked");
+    if (!lock.isAcquired()) throw runtime_error("Таблица заблокирована");
 
     int colIdx = -1;
     string cleanCol = whereCol;
     if(cleanCol.find('.') != string::npos) cleanCol = cleanCol.substr(cleanCol.find('.') + 1);
     auto& cols = schema.tables[tableName].columns;
     for(size_t i=0; i<cols.size(); ++i) if(cols[i] == cleanCol) { colIdx = i; break; }
-    if (colIdx == -1) throw runtime_error("Column not found");
+    if (colIdx == -1) throw runtime_error("Столбец не найден");
 
-    this_thread::sleep_for(chrono::seconds(1));
+    this_thread::sleep_for(chrono::seconds(LOCK_DELAY));
+
     int fileIdx = 1;
     while (true) {
         string path = schema.name + "/" + tableName + "/" + to_string(fileIdx++) + ".csv";
@@ -131,7 +134,7 @@ void StorageManager::deleteRows(const string& tableName, const string& whereCol,
         ofstream out(tempPath);
         while (getline(in, line)) {
             auto rowVals = split(line, ',');
-            if (!(colIdx < rowVals.size() && rowVals[colIdx] == whereVal)) out << line << "\n";
+            if (!(colIdx < rowVals.size() && trim(rowVals[colIdx]) == trim(whereVal))) out << line << "\n";
         }
         in.close(); out.close();
         fs::remove(path); fs::rename(tempPath, path);

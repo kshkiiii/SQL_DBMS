@@ -8,7 +8,7 @@ namespace fs = filesystem;
 
 DatabaseSchema SchemaManager::loadSchema(const string& filepath) {
     ifstream f(filepath);
-    if (!f.is_open()) throw runtime_error("File schema.json not found");
+    if (!f.is_open()) throw runtime_error("schema.json не найден");
     
     stringstream buffer;
     buffer << f.rdbuf();
