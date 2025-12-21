@@ -1,0 +1,26 @@
+[
+{
+  "directory": "D:/Project/SQL/build",
+  "command": "C:/w64devkit/bin/g++.exe  @CMakeFiles/DBMS.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles/DBMS.dir/src/engine.cpp.obj -c D:/Project/SQL/src/engine.cpp",
+  "file": "D:/Project/SQL/src/engine.cpp",
+  "output": "CMakeFiles/DBMS.dir/src/engine.cpp.obj"
+},
+{
+  "directory": "D:/Project/SQL/build",
+  "command": "C:/w64devkit/bin/g++.exe  @CMakeFiles/DBMS.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles/DBMS.dir/src/main.cpp.obj -c D:/Project/SQL/src/main.cpp",
+  "file": "D:/Project/SQL/src/main.cpp",
+  "output": "CMakeFiles/DBMS.dir/src/main.cpp.obj"
+},
+{
+  "directory": "D:/Project/SQL/build",
+  "command": "C:/w64devkit/bin/g++.exe  @CMakeFiles/DBMS.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles/DBMS.dir/src/schema.cpp.obj -c D:/Project/SQL/src/schema.cpp",
+  "file": "D:/Project/SQL/src/schema.cpp",
+  "output": "CMakeFiles/DBMS.dir/src/schema.cpp.obj"
+},
+{
+  "directory": "D:/Project/SQL/build",
+  "command": "C:/w64devkit/bin/g++.exe  @CMakeFiles/DBMS.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles/DBMS.dir/src/storage.cpp.obj -c D:/Project/SQL/src/storage.cpp",
+  "file": "D:/Project/SQL/src/storage.cpp",
+  "output": "CMakeFiles/DBMS.dir/src/storage.cpp.obj"
+}
+]

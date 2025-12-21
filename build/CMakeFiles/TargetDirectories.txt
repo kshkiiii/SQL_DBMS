@@ -1,0 +1,3 @@
+D:/Project/SQL/build/CMakeFiles/DBMS.dir
+D:/Project/SQL/build/CMakeFiles/edit_cache.dir
+D:/Project/SQL/build/CMakeFiles/rebuild_cache.dir

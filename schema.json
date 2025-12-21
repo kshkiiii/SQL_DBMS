@@ -1,0 +1,8 @@
+{
+  "name": "Test",
+  "tuples_limit": 5,
+  "structure": {
+    "users": ["name", "age", "city"],
+    "posts": ["user_id", "title"]
+  }
+}
