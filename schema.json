@@ -1,8 +1,11 @@
 {
-  "name": "Test",
-  "tuples_limit": 5,
+  "name": "CryptoExchange",
+  "tuples_limit": 100,
   "structure": {
-    "users": ["name", "age", "city"],
-    "posts": ["user_id", "title"]
+    "user": ["username", "key"],
+    "user_lot": ["user_id", "lot_id", "quantity"],
+    "order": ["user_id", "pair_id", "quantity", "price", "type", "closed"],
+    "lot": ["name"],
+    "pair": ["first_lot_id", "second_lot_id"]
   }
 }

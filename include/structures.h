@@ -23,6 +23,9 @@ inline vector<string> split(const string& s, char delimiter) {
     while (getline(tokenStream, token, delimiter)) {
         tokens.push_back(trim(token));
     }
+    if (!s.empty() && s.back() == delimiter) {
+        tokens.push_back("");
+    }
     return tokens;
 }
 

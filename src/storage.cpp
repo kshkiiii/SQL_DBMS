@@ -5,7 +5,7 @@
 using namespace std;
 namespace fs = filesystem;
 
-const int LOCK_DELAY = 1;
+const int LOCK_DELAY = 0;
 
 TableLock::TableLock(const string& path) : lockPath(path), acquired(false) {
     if (fs::create_directory(lockPath)) acquired = true;

@@ -1,0 +1,15 @@
+Рег пользователя
+curl -X POST http://localhost:8080/user -d '{"username": "юзер"}'
+
+Проверка баланса
+curl -H "X-USER-KEY: ключ" http://localhost:8080/balance
+
+Создание ордера
+curl -X POST http://localhost:8080/order \
+     -H "X-USER-KEY: ключ" \
+     -d '{"pair_id": 1, "quantity": 10, "price": 0.5, "type": "buy"}'
+
+Отмена ордера
+curl -X DELETE http://localhost:8080/order \
+     -H "X-USER-KEY: ключ" \
+     -d '{"order_id": id_ордера}'
